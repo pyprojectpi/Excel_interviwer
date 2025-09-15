@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Excel Mock Interviewer</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; }
+    .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
+    h1 { text-align: center; }
+    .qna { margin: 10px 0; padding: 10px; border-bottom: 1px solid #ddd; }
+    .question { font-weight: bold; color: #333; }
+    .answer { margin-top: 5px; color: #555; }
+    .feedback { background: #eef; padding: 15px; border-radius: 8px; margin-top: 20px; white-space: pre-line; }
+    button { margin-top: 10px; padding: 10px 20px; border: none; background: #007BFF; color: white; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧑‍💻 Excel Mock Interviewer</h1>
+
+    <!-- Question Form -->
+    <form action="/ask" method="post">
+      <input type="text" name="question" placeholder="Enter Excel question..." required style="width:80%; padding:8px;">
+      <button type="submit">Ask</button>
+    </form>
+
+    <!-- Chat History -->
+    {% if chat_history %}
+      <h2>Interview Transcript</h2>
+      {% for chat in chat_history %}
+        <div class="qna">
+          <div class="question">Q: {{ chat.question }}</div>
+          <div class="answer">A: {{ chat.answer }}</div>
+        </div>
+      {% endfor %}
+
+      <!-- End Interview Button -->
+      <form action="/end" method="post">
+        <button type="submit" style="background:#28a745;">End Interview & Get Feedback</button>
+      </form>
+    {% endif %}
+
+    <!-- Feedback Report -->
+    {% if feedback %}
+      <div class="feedback">
+        <h2>📊 Feedback Report</h2>
+        <p>{{ feedback | safe }}</p>
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>
