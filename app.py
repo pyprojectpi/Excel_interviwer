@@ -82,6 +82,8 @@ if "current_question" not in st.session_state:
     st.session_state.current_question = generate_random_question()
 if "feedback" not in st.session_state:
     st.session_state.feedback = None
+if "answer_input" not in st.session_state:
+    st.session_state.answer_input = ""  # initialize safely
 
 # Display past Q&A with evaluations
 for chat in st.session_state.chat_history:
@@ -97,6 +99,7 @@ st.markdown(f"### Current Question: {st.session_state.current_question}")
 # Candidate input
 candidate_answer = st.text_area("Your Answer:", key="answer_input")
 
+# Handle Submit
 if st.button("Submit Answer"):
     if candidate_answer.strip():
         feedback = evaluate_answer(st.session_state.current_question, candidate_answer)
@@ -107,7 +110,8 @@ if st.button("Submit Answer"):
         })
         st.session_state.feedback = feedback
         st.session_state.current_question = generate_random_question()
-        st.session_state.answer_input = ""  # reset input
+        # reset input properly
+        st.session_state.answer_input = ""
 
 # Show final feedback button
 if st.button("Finish Interview"):
