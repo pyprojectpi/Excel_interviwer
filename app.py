@@ -75,15 +75,15 @@ st.set_page_config(page_title="🧑‍💻 Excel Mock Interviewer", layout="cent
 st.title("🧑‍💻 AI-Powered Excel Mock Interviewer")
 st.write("Welcome! Answer Excel questions and get real-time AI feedback.")
 
-# Session state to track interview
+# ✅ Initialize session state
 if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+    st.session_state["chat_history"] = []
 if "current_question" not in st.session_state:
-    st.session_state.current_question = generate_random_question()
+    st.session_state["current_question"] = generate_random_question()
 if "feedback" not in st.session_state:
-    st.session_state.feedback = None
+    st.session_state["feedback"] = None
 if "answer_input" not in st.session_state:
-    st.session_state.answer_input = ""  # initialize safely
+    st.session_state["answer_input"] = ""
 
 # Display past Q&A with evaluations
 for chat in st.session_state.chat_history:
@@ -94,29 +94,29 @@ for chat in st.session_state.chat_history:
 
 # Current question
 st.markdown("---")
-st.markdown(f"### Current Question: {st.session_state.current_question}")
+st.markdown(f"### Current Question: {st.session_state['current_question']}")
 
 # Candidate input
 candidate_answer = st.text_area("Your Answer:", key="answer_input")
 
-# Handle Submit
+# Submit button
 if st.button("Submit Answer"):
     if candidate_answer.strip():
-        feedback = evaluate_answer(st.session_state.current_question, candidate_answer)
-        st.session_state.chat_history.append({
-            "question": st.session_state.current_question,
+        feedback = evaluate_answer(st.session_state["current_question"], candidate_answer)
+        st.session_state["chat_history"].append({
+            "question": st.session_state["current_question"],
             "answer": candidate_answer,
             "evaluation": feedback
         })
-        st.session_state.feedback = feedback
-        st.session_state.current_question = generate_random_question()
-        # reset input properly
-        st.session_state.answer_input = ""
+        st.session_state["feedback"] = feedback
+        st.session_state["current_question"] = generate_random_question()
+        # ✅ Safe reset
+        st.session_state["answer_input"] = ""
 
 # Show final feedback button
 if st.button("Finish Interview"):
-    if st.session_state.chat_history:
-        final_report = generate_final_feedback(st.session_state.chat_history)
+    if st.session_state["chat_history"]:
+        final_report = generate_final_feedback(st.session_state["chat_history"])
         st.subheader("📊 Final Interview Feedback")
         st.info(final_report)
     else:
