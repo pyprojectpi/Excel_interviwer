@@ -2,21 +2,39 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI Excel Mock Interviewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Excel Mock Interviewer | Test Your Excel Skills!</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/favicon.ico">
+    
     <link rel="stylesheet" href="/static/style.css">
+
+    <!-- Animated tab title -->
+    <script>
+        let title = "🚀 AI Excel Mock Interviewer | Test Your Excel Skills! ";
+        let pos = 0;
+        function scrollTitle() {
+            document.title = title.substring(pos) + title.substring(0, pos);
+            pos = (pos + 1) % title.length;
+            setTimeout(scrollTitle, 300);
+        }
+        scrollTitle();
+    </script>
 </head>
 <body>
+    <!-- Main container -->
     <div class="container">
         <h1>AI-Powered Excel Mock Interviewer</h1>
 
         <div class="chat-container">
-            <!-- Left side: Chat history and evaluations -->
+            <!-- Left side: Chat history -->
             <div class="chat-left">
                 {% for chat in chat_history %}
                     <div class="chat-item">
                         <div class="chat-question"><strong>Q:</strong> {{ chat.question }}</div>
                         <div class="chat-answer"><strong>A:</strong> {{ chat.answer }}</div>
-                        
+
                         {% if chat.evaluation %}
                             {% set lines = chat.evaluation.split('\n') %}
                             {% set score_line = lines[0] %}
@@ -36,7 +54,7 @@
                 {% endfor %}
             </div>
 
-            <!-- Right side: Current question -->
+            <!-- Right side: Current question & answer form -->
             <div class="chat-right">
                 {% if current_question %}
                     <div class="current-question">
@@ -59,3 +77,4 @@
     </div>
 </body>
 </html>
+
