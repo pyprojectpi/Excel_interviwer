@@ -1,11 +1,30 @@
-import streamlit as st
+import os
+from fastapi import FastAPI, Request, Form
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from dotenv import load_dotenv
 import google.generativeai as genai
 
-# ✅ Configure API key from Streamlit Secrets
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+# Load environment variables
+load_dotenv()
+API_KEY = os.getenv("GEMINI_API_KEY")
+if not API_KEY:
+    raise ValueError("GEMINI_API_KEY is missing in .env file")
+
+genai.configure(api_key=API_KEY)
+
+# FastAPI app setup
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+# In-memory session store (for PoC, single user)
+chat_history = []
 
 # ------------------------------
-# Helper: Generate random Excel question
+
+# Helper: Generate beginner Excel question (basic & commonly asked)
 # ------------------------------
 def generate_random_question():
     model = genai.GenerativeModel("gemini-2.0-flash-exp")
@@ -20,10 +39,13 @@ Do NOT generate very advanced formulas, macros, or complex scenarios.
 Provide only **one question** and nothing else.
 """
     response = model.generate_content(prompt)
-    return response.text.strip() if hasattr(response, "text") else "No question generated."
+    question = response.text.strip() if hasattr(response, "text") else "No question generated."
+    return question
+
+
 
 # ------------------------------
-# Helper: Evaluate candidate answer
+# Helper: Evaluate candidate's answer
 # ------------------------------
 def evaluate_answer(question, candidate_answer):
     model = genai.GenerativeModel("gemini-2.0-flash-exp")
@@ -46,7 +68,7 @@ Focus on practical Excel skills and professional usage.
     return response.text.strip() if hasattr(response, "text") else "No feedback generated."
 
 # ------------------------------
-# Helper: Generate overall feedback
+# Helper: Generate overall final feedback
 # ------------------------------
 def generate_final_feedback(chat_history):
     model = genai.GenerativeModel("gemini-2.0-flash-exp")
@@ -68,59 +90,54 @@ Focus on practical Excel skills and real-world usage.
     return response.text.strip() if hasattr(response, "text") else "No final feedback generated."
 
 # ------------------------------
-# Streamlit UI
+# Homepage: Start interview
 # ------------------------------
-st.set_page_config(page_title="🧑‍💻 Excel Mock Interviewer", layout="centered")
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    global chat_history
+    chat_history.clear()
+    
+    intro_message = "Welcome to the AI-Powered Excel Mock Interviewer! Let's start your interview."
+    first_question = generate_random_question()
+    
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "chat_history": [{"question": "Intro", "answer": intro_message}],
+        "current_question": first_question,
+        "feedback": None
+    })
 
-st.title("🧑‍💻 AI-Powered Excel Mock Interviewer")
-st.write("Welcome! Answer Excel questions and get real-time AI feedback.")
+# ------------------------------
+# Submit candidate answer
+# ------------------------------
+@app.post("/answer", response_class=HTMLResponse)
+async def answer_question(request: Request, candidate_answer: str = Form(...)):
+    global chat_history
 
-# ✅ Initialize session state
-if "chat_history" not in st.session_state:
-    st.session_state["chat_history"] = []
-if "current_question" not in st.session_state:
-    st.session_state["current_question"] = generate_random_question()
-if "feedback" not in st.session_state:
-    st.session_state["feedback"] = None
-if "answer_input" not in st.session_state:
-    st.session_state["answer_input"] = ""
-
-# Display past Q&A with evaluations
-for chat in st.session_state.chat_history:
-    st.markdown(f"**Q:** {chat['question']}")
-    st.markdown(f"**Your Answer:** {chat['answer']}")
-    if "evaluation" in chat:
-        st.success(f"**Evaluation:** {chat['evaluation']}")
-
-# Current question
-st.markdown("---")
-st.markdown(f"### Current Question: {st.session_state['current_question']}")
-
-# Candidate input
-candidate_answer = st.text_area("Your Answer:", key="answer_input")
-
-# Submit button
-if st.button("Submit Answer"):
-    if candidate_answer.strip():
-        feedback = evaluate_answer(st.session_state["current_question"], candidate_answer)
-        st.session_state["chat_history"].append({
-            "question": st.session_state["current_question"],
+    # Save candidate answer
+    last_question = chat_history[-1]["question"] if chat_history else None
+    if last_question != "Intro":
+        feedback = evaluate_answer(last_question, candidate_answer)
+        chat_history.append({
+            "question": last_question,
             "answer": candidate_answer,
             "evaluation": feedback
         })
-        st.session_state["feedback"] = feedback
-        st.session_state["current_question"] = generate_random_question()
-        # ✅ Safe reset
-        st.session_state["answer_input"] = ""
-
-# Show final feedback button
-if st.button("Finish Interview"):
-    if st.session_state["chat_history"]:
-        final_report = generate_final_feedback(st.session_state["chat_history"])
-        st.subheader("📊 Final Interview Feedback")
-        st.info(final_report)
     else:
-        st.warning("Answer at least one question before finishing!")
+        feedback = None
 
-st.markdown("---")
-st.caption("Built with Streamlit + Google Gemini 🚀")
+    # Generate next dynamic question
+    next_question = generate_random_question()
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "chat_history": chat_history,
+        "current_question": next_question,
+        "feedback": feedback
+    })
+
+# ------------------------------
+# Run FastAPI via uvicorn
+# ------------------------------
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
