@@ -17,13 +17,12 @@ An **interactive web application** that simulates Excel interviews using AI. Pra
 - Portfolio-ready screenshots and demo video  
 
 ---
+## Demo
 
-## 🖼️ Demo
+![AI Excel Mock Interviewer Screenshot](static/ao.png)  
 
-![AI Excel Mock Interviewer Screenshot](assets/img/ai-excel-mock.png)  
-
-🎬 **Video Demo:**  
-[![Watch Demo](assets/videos/Tumor_Classify.mp4)](https://pyprojectpi.github.io/my-portfolio/portfolio-ai-excel.html)
+**Video Demo:**  
+[Watch Demo](https://pyprojectpi.github.io/my-portfolio/portfolio-ai-excel.html)
 
 ---
 
