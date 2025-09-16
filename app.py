@@ -141,3 +141,4 @@ async def answer_question(request: Request, candidate_answer: str = Form(...)):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
+
