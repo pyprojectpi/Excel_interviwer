@@ -1,52 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Excel Mock Interviewer</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; }
-    .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
-    h1 { text-align: center; }
-    .qna { margin: 10px 0; padding: 10px; border-bottom: 1px solid #ddd; }
-    .question { font-weight: bold; color: #333; }
-    .answer { margin-top: 5px; color: #555; }
-    .feedback { background: #eef; padding: 15px; border-radius: 8px; margin-top: 20px; white-space: pre-line; }
-    button { margin-top: 10px; padding: 10px 20px; border: none; background: #007BFF; color: white; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-  </style>
+    <meta charset="UTF-8">
+    <title>AI Excel Mock Interviewer</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <div class="container">
-    <h1>🧑‍💻 Excel Mock Interviewer</h1>
+    <div class="container">
+        <h1>AI-Powered Excel Mock Interviewer</h1>
 
-    <!-- Question Form -->
-    <form action="/ask" method="post">
-      <input type="text" name="question" placeholder="Enter Excel question..." required style="width:80%; padding:8px;">
-      <button type="submit">Ask</button>
-    </form>
+        <div class="chat-container">
+            <!-- Left side: Chat history and evaluations -->
+            <div class="chat-left">
+                {% for chat in chat_history %}
+                    <div class="chat-item">
+                        <div class="chat-question"><strong>Q:</strong> {{ chat.question }}</div>
+                        <div class="chat-answer"><strong>A:</strong> {{ chat.answer }}</div>
+                        
+                        {% if chat.evaluation %}
+                            {% set lines = chat.evaluation.split('\n') %}
+                            {% set score_line = lines[0] %}
+                            {% set score_value = score_line.split(':')[-1]|trim|int %}
+                            <div class="chat-feedback">
+                                <div class="feedback-score {% if score_value >=8 %}high{% elif score_value >=5 %}medium{% else %}low{% endif %}">
+                                    {{ score_line }}
+                                </div>
+                                <div class="feedback-details">
+                                    {% for line in lines[1:] %}
+                                        <div>{{ line }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
 
-    <!-- Chat History -->
-    {% if chat_history %}
-      <h2>Interview Transcript</h2>
-      {% for chat in chat_history %}
-        <div class="qna">
-          <div class="question">Q: {{ chat.question }}</div>
-          <div class="answer">A: {{ chat.answer }}</div>
+            <!-- Right side: Current question -->
+            <div class="chat-right">
+                {% if current_question %}
+                    <div class="current-question">
+                        <p><strong>Next Question:</strong> {{ current_question }}</p>
+                    </div>
+
+                    <form action="/answer" method="post" class="answer-form">
+                        <textarea name="candidate_answer" placeholder="Type your answer here..." required></textarea>
+                        <button type="submit">Submit Answer</button>
+                    </form>
+                {% else %}
+                    <div class="final-feedback">
+                        <h2>Interview Completed</h2>
+                        <p>{{ feedback }}</p>
+                        <a href="/">Restart Interview</a>
+                    </div>
+                {% endif %}
+            </div>
         </div>
-      {% endfor %}
-
-      <!-- End Interview Button -->
-      <form action="/end" method="post">
-        <button type="submit" style="background:#28a745;">End Interview & Get Feedback</button>
-      </form>
-    {% endif %}
-
-    <!-- Feedback Report -->
-    {% if feedback %}
-      <div class="feedback">
-        <h2>📊 Feedback Report</h2>
-        <p>{{ feedback | safe }}</p>
-      </div>
-    {% endif %}
-  </div>
+    </div>
 </body>
 </html>
